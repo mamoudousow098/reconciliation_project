@@ -6,13 +6,15 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
 public class App 
 {   
     private Connection connection = null;
-
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final Object DROP_KEYWORD = "DROP";
     private void connect(String database, String user, String password) {
         try {
             DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
@@ -32,13 +34,11 @@ public class App
         int count = 1;
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {   
             pstmt.setTimestamp(1, new Timestamp(endDate));
-            // pstmt.setDate(1, new java.sql.Date(endDate));
             pstmt.setInt(2, limit);
-            Date now  = new Date();
-            // execute the delete statement
-            while (count != 0 && now.getHours() < stopHour) {
+            
+            while (count != 0 && new Date().getHours() < stopHour) {
                 count = pstmt.executeUpdate();
-                System.out.println("" + count + " rows deleted.");
+                System.out.println(DATE_FORMAT.format(new Date())  + " ::: " + table + " "+ count + " rows deleted.");
                 Thread.sleep(1000 * interval);
             }
             connection.close();
@@ -46,14 +46,48 @@ public class App
             System.out.println(e.getMessage());
         }
     }
+
+    public void dropTable(String table) {
+        String sql = "DROP TABLE " + table;
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {                   
+            System.out.println(DATE_FORMAT.format(new Date())  + " ::: DROP TABLE " + table + " "+ pstmt.executeUpdate());
+            connection.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void truncateTable(String table) {
+        String sql = "TRUNCATE " + table;
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {                   
+            System.out.println(DATE_FORMAT.format(new Date())  + " ::: TRUNCATE TABLE " + table + " " + pstmt.executeUpdate());
+            connection.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public static void main(String[] args )
     {
         long now = new Date().getTime();
         App app = new App();
         app.connect(args[0], args[1], args[2]);
 
-        String table = args[3], column = args[4];
+        String table = args[3];
+        if (args[4].equals(DROP_KEYWORD)) {
+            app.dropTable(table);    
+            return;
+        }
+        
+        
         long deleteBefore = Long.valueOf(args[5]).longValue();
+        if (deleteBefore == 0) {
+            app.truncateTable(table);
+            return;
+        }
+        
+        String column = args[4];
+
         int limit = Integer.valueOf(args[6]).intValue(), interval = Integer.valueOf(args[7]).intValue(), stopHour = Integer.valueOf(args[8]).intValue();
         app.delete(table, column, now - 1000 * 60 * 60 * deleteBefore, limit, interval, stopHour);
     }
