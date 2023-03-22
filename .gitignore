@@ -34,3 +34,6 @@ build/
 
 clean-database-prod.sh
 clean-database.sh
+clean-database-lonaci.sh
+op-clean-database-prod.sh
+ussd-clean-database-prod.sh

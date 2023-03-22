@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,7 +13,11 @@ public class App
 {   
     private Connection connection = null;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final Object DROP_KEYWORD = "DROP";
+    private static final String DROP_KEYWORD = "DROP";
+    private static final String TRANSACTIONGU = "transactiongu";
+
+    private static final String USSD_OPERATIONS = "ussd_operations";
+
     private void connect(String database, String user, String password) {
         try {
             DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
@@ -31,11 +34,16 @@ public class App
 
     public void delete(String table, String dateColumn, long endDate, int limit, int interval, int stopHour) {
         String sql = "DELETE FROM " + table +" WHERE " + dateColumn + " < ? LIMIT ?" ;
+        if (table.contains(TRANSACTIONGU)) {
+            sql = "DELETE FROM " + table +" WHERE " + dateColumn + " < ? AND message_retour_moteur = 'SUCCESS' LIMIT ?" ;
+        } else if (table.contains(USSD_OPERATIONS)){
+            sql = "DELETE FROM " + table +" WHERE " + dateColumn + " < ? AND tag != 'sended' LIMIT ?" ;
+        }
         int count = 1;
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {   
             pstmt.setTimestamp(1, new Timestamp(endDate));
             pstmt.setInt(2, limit);
-            
+            System.out.println(sql);
             while (count != 0 && new Date().getHours() < stopHour) {
                 count = pstmt.executeUpdate();
                 System.out.println(DATE_FORMAT.format(new Date())  + " ::: " + table + " "+ count + " rows deleted.");
