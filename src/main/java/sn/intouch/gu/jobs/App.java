@@ -22,7 +22,7 @@ public class App
         try {
             DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
         } catch (SQLException e) {e.printStackTrace();}  
-        String url = "jdbc:mysql://localhost/" + database;
+        String url = "jdbc:mysql://" + database + "?autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=UTC";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url, user, password);
