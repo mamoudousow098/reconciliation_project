@@ -6,7 +6,7 @@
 <code>mvn clean compile assembly:single</code>
 
 2. Run the app : <br>
-<code>java -jar target\delete-rows-job-1.0.0-jar-with-dependencies.jar localhost3306/guDev guUser guUser operationgu dateTraitement 34 10 5 6</code>
+<code>java -jar target\delete-rows-job-1.0.0-jar-with-dependencies.jar localhost3306/guDev guUser guUser localhost3306/guDev guUser guUser 15 5 2</code>
 <br>
 - arg1 : host:port/database master <br> 
 - arg2 : username master <br>
