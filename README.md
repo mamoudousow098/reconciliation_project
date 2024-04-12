@@ -8,12 +8,12 @@
 2. Run the app : <br>
 <code>java -jar target\delete-rows-job-1.0.0-jar-with-dependencies.jar localhost3306/guDev guUser guUser operationgu dateTraitement 34 10 5 6</code>
 <br>
-- arg1 : host:port/database <br>
-- arg2 : username <br>
-- arg3 : password <br>
-- arg4 : table name <br>
-- arg5 : date column <br>
-- arg6 : delete before in hours <br>
-- arg7 : limit of rows <br>
-- arg8 : delete interval in seconds <br>
-- arg9 : stop hour <br>
+- arg1 : host:port/database master <br> 
+- arg2 : username master <br>
+- arg3 : password master <br>
+- arg4 : host:port/database replica <br>
+- arg5 : username replica <br>
+- arg6 : password replica <br>
+- arg7 : numbers of seconds to switch to master <br>
+- arg8 : seconds to back up to replica <br>
+- arg9 : time to loop <br>
