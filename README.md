@@ -1,4 +1,4 @@
-## Simple JAVA APP for deleting rows in a database
+## Simple JAVA APP for switching to the database according to the time 
 
 ### To start the app :  
 
