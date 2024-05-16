@@ -37,8 +37,10 @@ public class App
 
         int rowsAffected = myStmt2.executeUpdate();
 
-        if (rowsAffected > 0) {
-            System.out.println("Update successful.");
+        if (rowsAffected > 0 && prmCode.equalsIgnoreCase("B2B_IS_BOGERANT_ACTIVATED")) {
+            System.out.println("Update successful for B2B_IS_BOGERANT_ACTIVATED to " + prmStringValue);
+        } else if (rowsAffected > 0 && prmCode.equalsIgnoreCase("RO_DATABASE")) {
+            System.out.println("Update successful for RO_DATABASE to " + prmStringValue);
         } else {
             System.out.println("Update failed. No records found with the provided ID.");
         }
@@ -90,28 +92,36 @@ public class App
 
         long diff = new Date().getTime() - (datetimeValue != null ? datetimeValue.getTime() : 0);
 
-        String prmStringValue = retrieveParameterStringValue(databaseMaster, userMaster, passwordMaster, "B2B_IS_BOGERANT_ACTIVATED");
-        System.out.println(prmStringValue);
+        String b2B_IS_BOGERANT_ACTIVATED = retrieveParameterStringValue(databaseMaster, userMaster, passwordMaster, "B2B_IS_BOGERANT_ACTIVATED");
+        String rO_DATABASE = retrieveParameterStringValue(databaseMaster, userMaster, passwordMaster, "RO_DATABASE");
+        System.out.println("B2B_IS_BOGERANT_ACTIVATED : " + b2B_IS_BOGERANT_ACTIVATED);
+        System.out.println("RO_DATABASE : " + rO_DATABASE);
 
-        if ("0".equals(prmStringValue)) System.out.println("I am on the master");
-        else  {
-            System.out.println("I am on the replica");
+        if ("0".equals(b2B_IS_BOGERANT_ACTIVATED) && "0".equalsIgnoreCase(rO_DATABASE) ) {
+            System.out.println("I am on the master ") ;
+        }
+        else if ("1".equals(b2B_IS_BOGERANT_ACTIVATED) && "1".equalsIgnoreCase(rO_DATABASE) ) {
+            System.out.println("I am on the replica ");
         }
 
         // if you are at the master and the difference between now and the last record date
         // is lower than the intended second so switch to Replica
-        if ("0".equals(prmStringValue) && (diff < secondToPassToReplica * 1000)) {
+        if (("0".equals(b2B_IS_BOGERANT_ACTIVATED) || "0".equals(rO_DATABASE) )  && (diff < secondToPassToReplica * 1000)) {
 
             updateParameter(databaseMaster, userMaster, passwordMaster,"B2B_IS_BOGERANT_ACTIVATED", "1");
-            System.out.println("Switch to Replica ");
+            updateParameter(databaseMaster, userMaster, passwordMaster,"RO_DATABASE", "1");
+            System.out.println("Switching to Replica ");
 
         }
+
         // if you are at the Replica and the difference between now and teh last record date
         // is greater than the intended seconds so switch to Master
-        else if ("1".equals(prmStringValue) && (diff > secondToPassToMaster * 1000)) {
+        else if (("1".equals(b2B_IS_BOGERANT_ACTIVATED ) || "1".equals(rO_DATABASE)  ) && (diff > secondToPassToMaster * 1000)) {
             updateParameter(databaseMaster, userMaster, passwordMaster,"B2B_IS_BOGERANT_ACTIVATED", "0");
-            System.out.println("Switch to Master ");
+            updateParameter(databaseMaster, userMaster, passwordMaster,"RO_DATABASE", "0");
+            System.out.println("Switching to Master");
         }
+
 
         myRs.close();
         myStmt.close();
@@ -125,19 +135,15 @@ public class App
         int  PassToMaster = Integer.parseInt(args[6]) ;
         int PassToReplica = Integer.parseInt(args[7]) ;
 
-        while ( true ) {
+        System.out.println("databaseMaster : " + args[0]);
+        System.out.println("userMaster : " + args[1]);
+        System.out.println("PasswordMaster : " + args[2]);
+        System.out.println("databaseReplica : " + args[3]);
+        System.out.println("userReplica : " + args[4]);
+        System.out.println("PasswordReplica : " + args[5]);
 
-            app.changePointeur(args[0], args[1],args[2],args[3], args[4],args[5],"transactiongu", "transaction_date", PassToMaster, PassToReplica);
+        app.changePointeur(args[0], args[1],args[2],args[3], args[4],args[5],"transactiongu", "transaction_date", PassToMaster, PassToReplica);
 
-            try {
-                // Sleep for 5 seconds
-                long sleepTimeMillis = Integer.parseInt(args[8]) * 1000L; // 5 seconds
-                Thread.sleep(sleepTimeMillis);
-                System.out.println("Thread slept for " + sleepTimeMillis + " milliseconds.");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
 
     }
 }
