@@ -78,7 +78,7 @@ public class App
 
         // you can use differents schemas retrieve, modify value from master and to replica
         //String statement = "SELECT transaction_date FROM " + table + " ORDER BY " + columnName + " DESC LIMIT 1";
-        String statement = "SELECT max(" + columnName + ") as " + columnName + " FROM " + table ;
+        String statement = "SELECT max(" + columnName + ") as " + columnName + " FROM " + table + " where " + columnName +" between CURDATE() and DATE_ADD(CURDATE(), INTERVAL 1 DAY)" ;
         PreparedStatement myStmt = connection2.prepareStatement(statement);
 
         ResultSet myRs = myStmt.executeQuery();
@@ -129,20 +129,27 @@ public class App
     }
 
 
-    public static void main(String[] args ) throws SQLException {
+    public static void main(String[] args ) throws SQLException, InterruptedException {
 
         App app = new App();
         int  PassToMaster = Integer.parseInt(args[6]) ;
         int PassToReplica = Integer.parseInt(args[7]) ;
 
-        System.out.println("databaseMaster : " + args[0]);
-        System.out.println("userMaster : " + args[1]);
-        System.out.println("PasswordMaster : " + args[2]);
-        System.out.println("databaseReplica : " + args[3]);
-        System.out.println("userReplica : " + args[4]);
-        System.out.println("PasswordReplica : " + args[5]);
+//        System.out.println("databaseMaster : " + args[0]);
+//        System.out.println("userMaster : " + args[1]);
+//        System.out.println("PasswordMaster : " + args[2]);
+//        System.out.println("databaseReplica : " + args[3]);
+//        System.out.println("userReplica : " + args[4]);
+//        System.out.println("PasswordReplica : " + args[5]);
+//        try {
+//            while (true) {
 
-        app.changePointeur(args[0], args[1],args[2],args[3], args[4],args[5],"transactiongu", "transaction_date", PassToMaster, PassToReplica);
+                app.changePointeur(args[0], args[1], args[2], args[3], args[4], args[5], "transactiongu", "transaction_date", PassToMaster, PassToReplica);
+//                Thread.sleep(2000);
+//            }
+//        } catch (Exception e)  {
+//            e.printStackTrace();
+//        }
 
 
     }
