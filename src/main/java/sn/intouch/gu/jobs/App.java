@@ -3,25 +3,30 @@ package sn.intouch.gu.jobs;
 import com.mysql.cj.jdbc.Driver;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static sn.intouch.gu.jobs.CommandExecutor.executeCommand;
 
 
 public class App
 {
-    //private Connection connection1 = null;
-    //private  Connection connection2 = null ;
-    //private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    String alerte = "/opt/alerte_mail_switch.sh" ;
+    String resolu = "/opt/resolu_mail_switch.sh" ;
+
+
     private Connection connect(String database, String user, String password) {
         try {
             DriverManager.registerDriver(new Driver());
-        } catch (SQLException e) {e.printStackTrace();}
+        }
+        catch (SQLException e) {e.printStackTrace();}
         String url = "jdbc:mysql://" + database + "?autoReconnect=true&failOverReadOnly=false&maxReconnects=10&serverTimezone=UTC";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url, user, password);
-            System.out.println("Succesful connection");
-        } catch (SQLException e) {
+            System.out.println("Successful connection");
+        }
+        catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return conn ;
@@ -30,10 +35,11 @@ public class App
     private void updateParameter(String databaseMaster, String userMaster, String passwordMaster, String prmCode, String prmStringValue) throws SQLException {
 
         Connection connection = connect(databaseMaster, userMaster,passwordMaster);
-        String updatePrmStmt = "UPDATE parametre SET prm_stringvalue = ? WHERE prm_code = ?";
+        String updatePrmStmt = "UPDATE parametre SET prm_stringvalue = ?, prm_value = ? WHERE prm_code = ?";
         PreparedStatement myStmt2 = connection.prepareStatement(updatePrmStmt);
         myStmt2.setString(1, prmStringValue);
-        myStmt2.setString(2, prmCode);
+        myStmt2.setInt(2, Integer.parseInt(prmStringValue));
+        myStmt2.setString(3, prmCode);
 
         int rowsAffected = myStmt2.executeUpdate();
 
@@ -110,6 +116,7 @@ public class App
 
             updateParameter(databaseMaster, userMaster, passwordMaster,"B2B_IS_BOGERANT_ACTIVATED", "1");
             updateParameter(databaseMaster, userMaster, passwordMaster,"RO_DATABASE", "1");
+            //executeCommand(resolu);
             System.out.println("Switching to Replica ");
 
         }
@@ -119,6 +126,7 @@ public class App
         else if (("1".equals(b2B_IS_BOGERANT_ACTIVATED ) || "1".equals(rO_DATABASE)  ) && (diff > secondToPassToMaster * 1000)) {
             updateParameter(databaseMaster, userMaster, passwordMaster,"B2B_IS_BOGERANT_ACTIVATED", "0");
             updateParameter(databaseMaster, userMaster, passwordMaster,"RO_DATABASE", "0");
+            //executeCommand(alerte);
             System.out.println("Switching to Master");
         }
 
@@ -131,26 +139,25 @@ public class App
 
     public static void main(String[] args ) throws SQLException, InterruptedException {
 
-        App app = new App();
+
+
         int  PassToMaster = Integer.parseInt(args[6]) ;
         int PassToReplica = Integer.parseInt(args[7]) ;
-
 //        System.out.println("databaseMaster : " + args[0]);
 //        System.out.println("userMaster : " + args[1]);
 //        System.out.println("PasswordMaster : " + args[2]);
 //        System.out.println("databaseReplica : " + args[3]);
 //        System.out.println("userReplica : " + args[4]);
 //        System.out.println("PasswordReplica : " + args[5]);
-//        try {
-//            while (true) {
-
+        App app = new App();
+        try {
+           // while (true) {
                 app.changePointeur(args[0], args[1], args[2], args[3], args[4], args[5], "transactiongu", "transaction_date", PassToMaster, PassToReplica);
-//                Thread.sleep(2000);
-//            }
-//        } catch (Exception e)  {
-//            e.printStackTrace();
-//        }
-
+           //     Thread.sleep(2000);
+           // }
+        } catch (Exception e)  {
+            e.printStackTrace();
+        }
 
     }
 }
